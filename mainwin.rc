@@ -2,10 +2,49 @@
 #include "winapi.h"
 #include "mainwin.h"
 
-rcMainWin DIALOGEX 0, 0, 640, 480
-STYLE DS_MODALFRAME | WS_OVERLAPPEDWINDOW | WS_CAPTION | WS_SYSMENU | DS_SHELLFONT
+// this is a UTF-8 file
+#pragma code_page(65001)
+
+#define editWidth ((50 / 3) + 2)		/* arbitrary */
+#define labelWidth (50 / 5)		/* arbitrary */
+#define dialogWidth ((2 * dialogMargin) + (3 * buttonWidth) + (2 * buttonXSpace) + horizontalSpace + (2 * editWidth) + (2 * labelXSpace) + labelWidth)
+#define dialogHeight 100
+#define firstX (0 + dialogMargin)
+#define firstY (0 + dialogMargin)
+#define lastX (dialogWidth - dialogMargin)
+#define lastY (dialogHeight - dialogMargin)
+rcMainWin DIALOGEX 0, 0, dialogWidth, dialogHeight
+STYLE DS_MODALFRAME | WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | DS_SHELLFONT
 CAPTION "Windows Dialog Base Units Calculator"
 FONT 8, "MS Shell Dlg"
 BEGIN
-	// TODO
+	PUSHBUTTON		"Choose Font", bcChooseFont,
+		firstX, firstY,
+		buttonWidth, buttonHeight
+	PUSHBUTTON		"Use lfMessageFont", bclfMessageFont,
+		(firstX + buttonWidth + buttonXSpace), firstY,
+		buttonWidth, buttonHeight
+	PUSHBUTTON		"Use Dialog Font", bcDialogFont,
+		(firstX + (2 * buttonWidth) + (2 * buttonXSpace)), firstY,
+		buttonWidth, buttonHeight
+
+	EDITTEXT			ecXCoord,
+		(lastX - (2 * editWidth) - (2 * labelXSpace) - labelWidth), firstY,
+		editWidth, editHeight,
+		ES_LEFT | ES_NUMBER | WS_TABSTOP,
+		WS_EX_CLIENTEDGE
+	CTEXT			"×", 500,
+		(lastX - editWidth - labelXSpace - labelWidth), (firstY + labelYOff),
+		labelWidth, labelHeight
+	EDITTEXT			ecYCoord,
+		(lastX - editWidth), firstY,
+		editWidth, editHeight,
+		ES_LEFT | ES_NUMBER | WS_TABSTOP,
+		WS_EX_CLIENTEDGE
+
+	CONTROL			"", lcResults, WC_LISTVIEW,
+		LVS_REPORT | LVS_OWNERDATA | LVS_NOSORTHEADER | LVS_SHOWSELALWAYS | WS_HSCROLL | WS_VSCROLL | WS_TABSTOP,
+		firstX, (firstY + buttonHeight + verticalSpace),
+		(lastX - firstX), (lastY - firstY - (buttonHeight + verticalSpace)),
+		WS_EX_CLIENTEDGE
 END
