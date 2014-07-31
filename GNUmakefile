@@ -29,4 +29,4 @@ forceall:
 neededCFLAGS = --std=c99
 neededLDFLAGS = \
 	-luser32 -lkernel32 -lcomctl32 \
-	-lcomdlg32
+	-lcomdlg32 -lgdi32
