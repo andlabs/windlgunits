@@ -7,16 +7,15 @@ struct mainwin {
 	HWND hXCoord;
 	HWND hYCoord;
 	HWND hResults;
-	UINT xcoord;
-	UINT ycoord;
-
+	UINT x;
+	UINT y;
 	int xs[nModes];
 	int ys[nModes];
 };
 
 #define printf(...) abort()
 
-HFONT chooseFont(HWND parent)
+static HFONT chooseFont(HWND parent)
 {
 	CHOOSEFONTW cf;
 	LOGFONTW lf;
@@ -41,6 +40,12 @@ HFONT chooseFont(HWND parent)
 	if (font == NULL)
 		printf("panic TODO\n");
 	return font;
+}
+
+static void recalc(HWND hwnd, struct mainwin *mainwin, HFONT font)
+{
+	runCalculations(hwnd, font, mainwin->x, mainwin->y, mainwin->xs, mainwin->ys);
+	refreshResultsListView(mainwin->hResults);
 }
 
 INT_PTR CALLBACK mainwinDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -79,18 +84,18 @@ INT_PTR CALLBACK mainwinDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 				font = chooseFont(hwnd);
 				if (font == NULL)
 					return TRUE;
-				// TODO
+				recalc(hwnd, mainwin, font);
 				if (DeleteObject(font) == 0)
 					printf("panic TODO\n");
 				return TRUE;
 			case bclfMessageFont:
-				// TODO
+				recalc(hwnd, mainwin, lfMessageFont);
 				return TRUE;
 			case bcDialogFont:
 				font = (HFONT) SendMessageW(hwnd, WM_GETFONT, 0, 0);
 				if (font == NULL)
 					printf("panic TODO\n");
-				// TODO
+				recalc(hwnd, mainwin, font);
 				return TRUE;
 			}
 			return FALSE;

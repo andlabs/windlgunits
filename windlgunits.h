@@ -17,3 +17,5 @@ enum {
 };
 extern WCHAR *modenames[nModes];
 extern void initResultsListView(HWND);
+extern void refreshResultsListView(HWND);
+extern void runCalculations(HWND, HFONT, int, int, int *, int *);
