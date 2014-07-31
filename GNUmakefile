@@ -7,7 +7,7 @@ else
 endif
 CFILES = main.c
 RCFILES = mainwin.rc
-HFILES = windlgunits.h mainwin.h
+HFILES = windlgunits.h winapi.h mainwin.h
 
 OFILES = $(CFILES:.c=.o) $(RCFILES:.rc=.o)
 
