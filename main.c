@@ -9,6 +9,9 @@ struct mainwin {
 	HWND hResults;
 	UINT xcoord;
 	UINT ycoord;
+
+	int xs[nModes];
+	int ys[nModes];
 };
 
 #define printf(...) abort()
@@ -44,6 +47,8 @@ INT_PTR CALLBACK mainwinDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 {
 	struct mainwin *mainwin;
 	HFONT font;
+	NMHDR *nmhdr = (NMHDR *) lParam;
+	NMLVDISPINFOW *fill = (NMLVDISPINFO *) lParam;
 
 	mainwin = (struct mainwin *) GetWindowLongPtr(hwnd, DWLP_USER);
 	if (mainwin == NULL && uMsg != WM_INITDIALOG)		// skip if not ready yet
@@ -64,6 +69,7 @@ INT_PTR CALLBACK mainwinDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 		if (mainwin->hResults == NULL)
 			printf("TODO panic\n");
 		SetWindowLongPtr(hwnd, DWLP_USER, (LONG_PTR) mainwin);
+		initResultsListView(mainwin->hResults);
 		return TRUE;
 	case WM_COMMAND:
 		switch (HIWORD(wParam)) {
@@ -88,6 +94,22 @@ INT_PTR CALLBACK mainwinDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 				return TRUE;
 			}
 			return FALSE;
+		}
+		return FALSE;
+	case WM_NOTIFY:
+		if (nmhdr->code == LVN_GETDISPINFO && nmhdr->idFrom == lcResults) {
+			switch (fill->item.iSubItem) {
+			case 0:		// mode name
+				fill->item.pszText = modenames[fill->item.iItem];
+				return TRUE;
+			case 1:		// width
+				swprintf_s(fill->item.pszText, fill->item.cchTextMax, L"%d", mainwin->xs[fill->item.iItem]);
+				return TRUE;
+			case 2:		// height
+				swprintf_s(fill->item.pszText, fill->item.cchTextMax, L"%d", mainwin->ys[fill->item.iItem]);
+				return TRUE;
+			}
+			// else fallthrough
 		}
 		return FALSE;
 	case WM_CLOSE:
