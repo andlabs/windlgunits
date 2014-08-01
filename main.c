@@ -26,7 +26,7 @@ static void reportCurrentFont(struct mainwin *mainwin, LOGFONTW lf)
 	LONG h;
 	HDC dc;
 	WCHAR *buf;
-	DWORD_PTR args[3];
+	DWORD_PTR args[5];
 
 	dc = GetDC(mainwin->hwnd);
 	if (dc == NULL)
@@ -47,12 +47,15 @@ static void reportCurrentFont(struct mainwin *mainwin, LOGFONTW lf)
 		panic(mainwin->hwnd, "not sure how to convert 0 from lfHeight to points");
 	if (ReleaseDC(mainwin->hwnd, dc) == 0)
 		panic(mainwin->hwnd, "ReleaseDC() in reportCurrentFont() failed");
-	// TODO styles
 	args[0] = (DWORD_PTR) lf.lfFaceName;
 	args[1] = (DWORD_PTR) h;
-	//args[2] = (DWORD_PTR) xxxx;
+	args[2] = (DWORD_PTR) lf.lfWeight;
+	args[3] = (DWORD_PTR) L"";
+	if (lf.lfItalic)
+		args[3] = (DWORD_PTR) L" Italic";
+	args[4] = (DWORD_PTR) lf.lfCharSet;
 	if (FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_ARGUMENT_ARRAY | FORMAT_MESSAGE_FROM_STRING,
-		L"Current font: %1 %2!d!",
+		L"Current font: %1 %2!d! Weight %3!d!%4 Character Set %5!d!",
 		0, 0, (LPWSTR) (&buf), 0, (va_list *) args) == 0)
 		panic(mainwin->hwnd, "FormatMessage() in reportCurrentFont() failed");
 	switch (SendMessageW(mainwin->hCurFontLabel, WM_SETTEXT, 0, (LPARAM) buf)) {
@@ -73,7 +76,7 @@ static HFONT chooseFont(struct mainwin *mainwin)
 	cf.lStructSize = sizeof (CHOOSEFONTW);
 	cf.hwndOwner = mainwin->hwnd;
 	cf.lpLogFont = &lf;
-	cf.Flags = CF_EFFECTS;		// TODO CF_FORCEFONTEXIST?
+	cf.Flags = 0;		// TODO CF_FORCEFONTEXIST?
 	cf.rgbColors = RGB(0, 0, 0);
 	if (ChooseFontW(&cf) == FALSE) {
 		DWORD err;
