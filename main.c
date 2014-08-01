@@ -64,11 +64,8 @@ static void reportCurrentFont(struct mainwin *mainwin, LOGFONTW lf)
 		L"Current font: %1 %2!d! Weight %3!d!%4 Character Set %5!d!",
 		0, 0, (LPWSTR) (&buf), 0, (va_list *) args) == 0)
 		panic(mainwin->hwnd, "FormatMessage() in reportCurrentFont() failed");
-	switch (SendMessageW(mainwin->hCurFontLabel, WM_SETTEXT, 0, (LPARAM) buf)) {
-	case FALSE:
-	//case xxxx://TODO error
+	if (SendMessageW(mainwin->hCurFontLabel, WM_SETTEXT, 0, (LPARAM) buf) == FALSE)
 		panic(mainwin->hwnd, "error setting current font label text");
-	}
 }
 
 static HFONT chooseFont(struct mainwin *mainwin)
