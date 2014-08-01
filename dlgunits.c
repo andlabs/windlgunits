@@ -39,6 +39,8 @@ void refreshResultsListView(HWND hwnd)
 {
 	int i;
 
+	if (SendMessageW(hwnd, LVM_SETITEMCOUNT, (WPARAM) nModes, 0) == 0)
+		abort();//TODO
 	for (i = 0; i < nModes; i++)
 		if (SendMessageW(hwnd, LVM_UPDATE, (WPARAM) i, 0) == FALSE)
 			abort();//TODO
