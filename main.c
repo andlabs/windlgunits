@@ -97,14 +97,17 @@ INT_PTR CALLBACK mainwinDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 			switch (LOWORD(wParam)) {
 			case bcChooseFont:
 				font = chooseFont(hwnd);
-				if (font == NULL)
+				if (font == NULL) {
+					SetWindowLongW(hwnd, DWL_MSGRESULT, 0);
 					return TRUE;
+				}
 				freefont(mainwin);
 				mainwin->font = font;
 				mainwin->freeFont = TRUE;
 				recalc(hwnd, mainwin);
 				EnableWindow(mainwin->hXCoord, TRUE);
 				EnableWindow(mainwin->hYCoord, TRUE);
+				SetWindowLongW(hwnd, DWL_MSGRESULT, 0);
 				return TRUE;
 			case bclfMessageFont:
 				freefont(mainwin);
@@ -113,6 +116,7 @@ INT_PTR CALLBACK mainwinDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 				recalc(hwnd, mainwin);
 				EnableWindow(mainwin->hXCoord, TRUE);
 				EnableWindow(mainwin->hYCoord, TRUE);
+				SetWindowLongW(hwnd, DWL_MSGRESULT, 0);
 				return TRUE;
 			case bcDialogFont:
 				freefont(mainwin);
@@ -123,6 +127,7 @@ INT_PTR CALLBACK mainwinDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 				recalc(hwnd, mainwin);
 				EnableWindow(mainwin->hXCoord, TRUE);
 				EnableWindow(mainwin->hYCoord, TRUE);
+				SetWindowLongW(hwnd, DWL_MSGRESULT, 0);
 				return TRUE;
 			}
 			return FALSE;
@@ -133,20 +138,24 @@ INT_PTR CALLBACK mainwinDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 				if (!valid) {
 					MessageBeep(-1);
 					// TODO
+					SetWindowLongW(hwnd, DWL_MSGRESULT, 0);
 					return TRUE;
 				}
 				mainwin->x = (int) entry;
 				recalc(hwnd, mainwin);
+				SetWindowLongW(hwnd, DWL_MSGRESULT, 0);
 				return TRUE;
 			case ecYCoord:
 				entry = GetDlgItemInt(hwnd, ecYCoord, &valid, FALSE);
 				if (!valid) {
 					MessageBeep(-1);
 					// TODO
+					SetWindowLongW(hwnd, DWL_MSGRESULT, 0);
 					return TRUE;
 				}
 				mainwin->y = (int) entry;
 				recalc(hwnd, mainwin);
+				SetWindowLongW(hwnd, DWL_MSGRESULT, 0);
 				return TRUE;
 			}
 			return FALSE;
