@@ -5,6 +5,7 @@
 #define bclfMessageFont 102
 #define bcDialogFont 103
 #define ecXCoord 104
-#define cTimesLabel 105
+#define scTimesLabel 105
 #define ecYCoord 106
 #define lcResults 107
+#define scCurFontLabel 108

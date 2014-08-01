@@ -8,7 +8,7 @@
 #define editWidth ((50 / 3) + 2)		/* arbitrary */
 #define labelWidth (50 / 5)		/* arbitrary */
 #define dialogWidth ((2 * dialogMargin) + (3 * buttonWidth) + (2 * buttonXSpace) + horizontalSpace + (2 * editWidth) + (2 * labelXSpace) + labelWidth)
-#define dialogHeight 100
+#define dialogHeight 125
 #define firstX (0 + dialogMargin)
 #define firstY (0 + dialogMargin)
 #define lastX (dialogWidth - dialogMargin)
@@ -33,7 +33,7 @@ BEGIN
 		editWidth, editHeight,
 		ES_LEFT | ES_NUMBER | WS_TABSTOP,
 		WS_EX_CLIENTEDGE
-	CTEXT			"×", 500,
+	CTEXT			"×", scTimesLabel,
 		(lastX - editWidth - labelXSpace - labelWidth), (firstY + labelYOff),
 		labelWidth, labelHeight
 	EDITTEXT			ecYCoord,
@@ -45,6 +45,10 @@ BEGIN
 	CONTROL			"", lcResults, WC_LISTVIEW,
 		LVS_REPORT | LVS_OWNERDATA | LVS_NOSORTHEADER | LVS_SHOWSELALWAYS | WS_HSCROLL | WS_VSCROLL | WS_TABSTOP,
 		firstX, (firstY + buttonHeight + verticalSpace),
-		(lastX - firstX), (lastY - firstY - (buttonHeight + verticalSpace)),
+		(lastX - firstX), (lastY - firstY - (buttonHeight + verticalSpace) - (labelHeight + verticalSpace)),
 		WS_EX_CLIENTEDGE
+
+	LTEXT			"Click one of the font selection buttons to begin.", scCurFontLabel,
+		firstX, (lastY - labelHeight),
+		(lastX - firstX), labelHeight
 END
