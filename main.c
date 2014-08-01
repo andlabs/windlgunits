@@ -192,7 +192,7 @@ INT_PTR CALLBACK mainwinDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 	return FALSE;
 }
 
-int main(void)
+int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
 	INITCOMMONCONTROLSEX icc;
 	NONCLIENTMETRICSW ncm;
