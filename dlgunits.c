@@ -45,7 +45,7 @@ void refreshResultsListView(HWND hwnd)
 		if (SendMessageW(hwnd, LVM_UPDATE, (WPARAM) i, 0) == FALSE)
 			abort();//TODO
 	for (i = 0; i < nColumns; i++)
-		if (SendMessageW(hwnd, LVM_SETCOLUMNWIDTH, (WPARAM) i, (LPARAM) LVSCW_AUTOSIZE) == FALSE)
+		if (SendMessageW(hwnd, LVM_SETCOLUMNWIDTH, (WPARAM) i, (LPARAM) LVSCW_AUTOSIZE_USEHEADER) == FALSE)
 			abort();//TODO
 	if (UpdateWindow(hwnd) == 0)
 		abort();//TODO
