@@ -148,7 +148,7 @@ void runCalculations(HWND hwnd, HFONT font, int x, int y, int *xs, int *ys)
 	args.hwnd = hwnd;
 	args.dc = GetDC(hwnd);
 	if (args.dc == NULL)
-		panic(args.hwnd, "GetDC() failed");
+		panic(args.hwnd, "GetDC() in runCalculations() failed");
 	// get averages for the System font now while it's selected into the DC
 	getAverages(args.dc, &args.sysb);
 	args.font = font;
@@ -163,5 +163,5 @@ void runCalculations(HWND hwnd, HFONT font, int x, int y, int *xs, int *ys)
 	if (SelectObject(args.dc, args.prevfont) != args.font)
 		panic(args.hwnd, "SelectObject() to restore previous font failed");
 	if (ReleaseDC(args.hwnd, args.dc) == 0)
-		panic(args.hwnd, "ReleaseDC() failed");
+		panic(args.hwnd, "ReleaseDC() in runCalculations() failed");
 }

@@ -1,6 +1,9 @@
 // 31 july 2014
 #include "windlgunits.h"
 
+// TODO this needs some /major/ cleanup
+
+LOGFONTW logfontMessageFont;
 HFONT lfMessageFont;
 
 struct mainwin {
@@ -8,15 +11,58 @@ struct mainwin {
 	HWND hXCoord;
 	HWND hYCoord;
 	HWND hResults;
+	HWND hCurFontLabel;
 	int x;
 	int y;
 	int xs[nModes];
 	int ys[nModes];
 	HFONT font;
 	BOOL freeFont;
+	WCHAR *curfontmsg;
 };
 
-static HFONT chooseFont(HWND parent)
+static void reportCurrentFont(struct mainwin *mainwin, LOGFONTW lf)
+{
+	LONG h;
+	HDC dc;
+	WCHAR *buf;
+	DWORD_PTR args[3];
+
+	dc = GetDC(mainwin->hwnd);
+	if (dc == NULL)
+		panic(mainwin->hwnd, "GetDC() in reportCurrentFont() failed");
+	h = lf.lfHeight;
+	if (h < 0) {
+		// solve height = -MulDiv(points, base, 72dpi) for points to get this
+		h = -h;
+		h = MulDiv(h, 72, GetDeviceCaps(dc, LOGPIXELSY));
+	} else if (h > 0) {
+		TEXTMETRICW tm;
+		HFONT prev;
+
+		// TODO
+		// solve the first formula in http://support.microsoft.com/kb/74299 for point size
+		h = ((h - tm.tmInternalLeading) * 72) / GetDeviceCaps(dc, LOGPIXELSY);
+	} else
+		panic(mainwin->hwnd, "not sure how to convert 0 from lfHeight to points");
+	if (ReleaseDC(mainwin->hwnd, dc) == 0)
+		panic(mainwin->hwnd, "ReleaseDC() in reportCurrentFont() failed");
+	// TODO styles
+	args[0] = (DWORD_PTR) lf.lfFaceName;
+	args[1] = (DWORD_PTR) h;
+	//args[2] = (DWORD_PTR) xxxx;
+	if (FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_ARGUMENT_ARRAY | FORMAT_MESSAGE_FROM_STRING,
+		L"Current font: %1 %2!d!",
+		0, 0, (LPWSTR) (&buf), 0, (va_list *) args) == 0)
+		panic(mainwin->hwnd, "FormatMessage() in reportCurrentFont() failed");
+	switch (SendMessageW(mainwin->hCurFontLabel, WM_SETTEXT, 0, (LPARAM) buf)) {
+	case FALSE:
+	//case xxxx://TODO error
+		panic(mainwin->hwnd, "error setting current font label text");
+	}
+}
+
+static HFONT chooseFont(struct mainwin *mainwin)
 {
 	CHOOSEFONTW cf;
 	LOGFONTW lf;
@@ -25,7 +71,7 @@ static HFONT chooseFont(HWND parent)
 	ZeroMemory(&cf, sizeof (CHOOSEFONTW));
 	ZeroMemory(&lf, sizeof (LOGFONTW));
 	cf.lStructSize = sizeof (CHOOSEFONTW);
-	cf.hwndOwner = parent;
+	cf.hwndOwner = mainwin->hwnd;
 	cf.lpLogFont = &lf;
 	cf.Flags = CF_EFFECTS;		// TODO CF_FORCEFONTEXIST?
 	cf.rgbColors = RGB(0, 0, 0);
@@ -35,11 +81,14 @@ static HFONT chooseFont(HWND parent)
 		err = CommDlgExtendedError();
 		if (err == 0)		// user cancelled
 			return NULL;
-		panic(parent, "error opening Choose Font dialog");
+		panic(mainwin->hwnd, "error opening Choose Font dialog");
 	}
 	font = CreateFontIndirectW(&lf);
 	if (font == NULL)
-		panic(parent, "error loading selected font");
+		panic(mainwin->hwnd, "error loading selected font");
+	mainwin->font = font;
+	mainwin->freeFont = FALSE;
+	reportCurrentFont(mainwin, lf);
 	return font;
 }
 
@@ -65,6 +114,7 @@ INT_PTR CALLBACK mainwinDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 	NMLVDISPINFOW *fill = (NMLVDISPINFO *) lParam;
 	UINT entry;
 	BOOL valid;
+	LOGFONTW lf;
 
 	mainwin = (struct mainwin *) GetWindowLongPtr(hwnd, DWLP_USER);
 	if (mainwin == NULL && uMsg != WM_INITDIALOG)		// skip if not ready yet
@@ -85,6 +135,9 @@ INT_PTR CALLBACK mainwinDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 		mainwin->hResults = GetDlgItem(hwnd, lcResults);
 		if (mainwin->hResults == NULL)
 			panic(hwnd, "error getting results list handle");
+		mainwin->hCurFontLabel = GetDlgItem(hwnd, scCurFontLabel);
+		if (mainwin->hCurFontLabel == NULL)
+			panic(hwnd, "error getting current font label handle");
 		// require a button to be clicked before editing
 		EnableWindow(mainwin->hXCoord, FALSE);
 		EnableWindow(mainwin->hYCoord, FALSE);
@@ -96,14 +149,12 @@ INT_PTR CALLBACK mainwinDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 		case BN_CLICKED:
 			switch (LOWORD(wParam)) {
 			case bcChooseFont:
-				font = chooseFont(hwnd);
+				font = chooseFont(mainwin);
 				if (font == NULL) {
 					SetWindowLongW(hwnd, DWL_MSGRESULT, 0);
 					return TRUE;
 				}
 				freefont(mainwin);
-				mainwin->font = font;
-				mainwin->freeFont = TRUE;
 				recalc(hwnd, mainwin);
 				EnableWindow(mainwin->hXCoord, TRUE);
 				EnableWindow(mainwin->hYCoord, TRUE);
@@ -113,6 +164,7 @@ INT_PTR CALLBACK mainwinDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 				freefont(mainwin);
 				mainwin->font = lfMessageFont;
 				mainwin->freeFont = FALSE;
+				reportCurrentFont(mainwin, logfontMessageFont);
 				recalc(hwnd, mainwin);
 				EnableWindow(mainwin->hXCoord, TRUE);
 				EnableWindow(mainwin->hYCoord, TRUE);
@@ -124,6 +176,9 @@ INT_PTR CALLBACK mainwinDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 				if (mainwin->font == NULL)
 					panic(hwnd, "error grabbing dialog font");
 				mainwin->freeFont = FALSE;
+				if (GetObjectW(mainwin->font, sizeof (LOGFONTW), &lf) == 0)
+					panic(hwnd, "error getting LOGFONT for dialog font");
+				reportCurrentFont(mainwin, lf);
 				recalc(hwnd, mainwin);
 				EnableWindow(mainwin->hXCoord, TRUE);
 				EnableWindow(mainwin->hYCoord, TRUE);
@@ -207,6 +262,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	ncm.cbSize = sizeof (NONCLIENTMETRICSW);
 	if (SystemParametersInfoW(SPI_GETNONCLIENTMETRICS, sizeof (NONCLIENTMETRICSW), &ncm, sizeof (NONCLIENTMETRICSW)) == 0)
 		panic(NULL, "Failed to get lfMessageFont");
+	logfontMessageFont = ncm.lfMessageFont;
 	lfMessageFont = CreateFontIndirectW(&ncm.lfMessageFont);
 	if (lfMessageFont == NULL)
 		panic(NULL, "Failed to load lfMessageFont");
