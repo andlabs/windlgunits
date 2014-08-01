@@ -7,10 +7,12 @@ struct mainwin {
 	HWND hXCoord;
 	HWND hYCoord;
 	HWND hResults;
-	UINT x;
-	UINT y;
+	int x;
+	int y;
 	int xs[nModes];
 	int ys[nModes];
+	HFONT font;
+	BOOL freeFont;
 };
 
 #define printf(...) abort()
@@ -42,9 +44,17 @@ static HFONT chooseFont(HWND parent)
 	return font;
 }
 
-static void recalc(HWND hwnd, struct mainwin *mainwin, HFONT font)
+static void freefont(struct mainwin *mainwin)
 {
-	runCalculations(hwnd, font, mainwin->x, mainwin->y, mainwin->xs, mainwin->ys);
+	if (!mainwin->freeFont)		// only if we should
+		return;
+	if (DeleteObject(mainwin->font) == 0)
+		printf("panic TODO\n");
+}
+
+static void recalc(HWND hwnd, struct mainwin *mainwin)
+{
+	runCalculations(hwnd, mainwin->font, mainwin->x, mainwin->y, mainwin->xs, mainwin->ys);
 	refreshResultsListView(mainwin->hResults);
 }
 
@@ -54,6 +64,8 @@ INT_PTR CALLBACK mainwinDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 	HFONT font;
 	NMHDR *nmhdr = (NMHDR *) lParam;
 	NMLVDISPINFOW *fill = (NMLVDISPINFO *) lParam;
+	UINT entry;
+	BOOL valid;
 
 	mainwin = (struct mainwin *) GetWindowLongPtr(hwnd, DWLP_USER);
 	if (mainwin == NULL && uMsg != WM_INITDIALOG)		// skip if not ready yet
@@ -73,6 +85,9 @@ INT_PTR CALLBACK mainwinDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 		mainwin->hResults = GetDlgItem(hwnd, lcResults);
 		if (mainwin->hResults == NULL)
 			printf("TODO panic\n");
+		// let's avoid a crash at startup by using lfMessageFont by default
+		mainwin->font = lfMessageFont;
+		mainwin->freeFont = FALSE;
 		SetWindowLongPtr(hwnd, DWLP_USER, (LONG_PTR) mainwin);
 		initResultsListView(mainwin->hResults);
 		return TRUE;
@@ -84,18 +99,48 @@ INT_PTR CALLBACK mainwinDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 				font = chooseFont(hwnd);
 				if (font == NULL)
 					return TRUE;
-				recalc(hwnd, mainwin, font);
-				if (DeleteObject(font) == 0)
-					printf("panic TODO\n");
+				freefont(mainwin);
+				mainwin->font = font;
+				mainwin->freeFont = TRUE;
+				recalc(hwnd, mainwin);
 				return TRUE;
 			case bclfMessageFont:
-				recalc(hwnd, mainwin, lfMessageFont);
+				freefont(mainwin);
+				mainwin->font = lfMessageFont;
+				mainwin->freeFont = FALSE;
+				recalc(hwnd, mainwin);
 				return TRUE;
 			case bcDialogFont:
-				font = (HFONT) SendMessageW(hwnd, WM_GETFONT, 0, 0);
-				if (font == NULL)
+				freefont(mainwin);
+				mainwin->font = (HFONT) SendMessageW(hwnd, WM_GETFONT, 0, 0);
+				if (mainwin->font == NULL)
 					printf("panic TODO\n");
-				recalc(hwnd, mainwin, font);
+				mainwin->freeFont = FALSE;
+				recalc(hwnd, mainwin);
+				return TRUE;
+			}
+			return FALSE;
+		case EN_CHANGE:
+			switch (LOWORD(wParam)) {
+			case ecXCoord:
+				entry = GetDlgItemInt(hwnd, ecXCoord, &valid, FALSE);
+				if (!valid) {
+					MessageBeep(-1);
+					// TODO
+					return TRUE;
+				}
+				mainwin->x = (int) entry;
+				recalc(hwnd, mainwin);
+				return TRUE;
+			case ecYCoord:
+				entry = GetDlgItemInt(hwnd, ecYCoord, &valid, FALSE);
+				if (!valid) {
+					MessageBeep(-1);
+					// TODO
+					return TRUE;
+				}
+				mainwin->y = (int) entry;
+				recalc(hwnd, mainwin);
 				return TRUE;
 			}
 			return FALSE;
