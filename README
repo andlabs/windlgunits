@@ -1,3 +1,6 @@
 TODO wrie this
 TODO MSVC makefile
 TODO show current font at bottom of dialog
+TODO make terms consistent (swap all instances of X and Y with width and height)
+TODO adjust height of dialog box based on dialog font somehow (see windows 7)
+TODO button text isn't centered properly?
