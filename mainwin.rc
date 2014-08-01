@@ -31,7 +31,7 @@ BEGIN
 	EDITTEXT			ecXCoord,
 		(lastX - (2 * editWidth) - (2 * labelXSpace) - labelWidth), firstY,
 		editWidth, editHeight,
-		ES_LEFT | ES_NUMBER | WS_TABSTOP,
+		ES_LEFT | ES_NUMBER | ES_AUTOHSCROLL | WS_TABSTOP,
 		WS_EX_CLIENTEDGE
 	CTEXT			"×", scTimesLabel,
 		(lastX - editWidth - labelXSpace - labelWidth), (firstY + labelYOff),
@@ -39,7 +39,7 @@ BEGIN
 	EDITTEXT			ecYCoord,
 		(lastX - editWidth), firstY,
 		editWidth, editHeight,
-		ES_LEFT | ES_NUMBER | WS_TABSTOP,
+		ES_LEFT | ES_NUMBER | ES_AUTOHSCROLL | WS_TABSTOP,
 		WS_EX_CLIENTEDGE
 
 	CONTROL			"", lcResults, WC_LISTVIEW,
