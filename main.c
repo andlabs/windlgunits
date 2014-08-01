@@ -159,10 +159,14 @@ INT_PTR CALLBACK mainwinDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 				fill->item.pszText = modenames[fill->item.iItem];
 				return TRUE;
 			case 1:		// width
-				swprintf_s(fill->item.pszText, fill->item.cchTextMax, L"%d", mainwin->xs[fill->item.iItem]);
+				// I'd use swprintf_s() here but it's not available on Windows XP
+				// because we use _snwprintf(), we have to pass len - 1 so we can have room for a null terminator
+				_snwprintf(fill->item.pszText, fill->item.cchTextMax - 1, L"%d", mainwin->xs[fill->item.iItem]);
+				fill->item.pszText[fill->item.cchTextMax - 1] = L'\0';
 				return TRUE;
 			case 2:		// height
-				swprintf_s(fill->item.pszText, fill->item.cchTextMax, L"%d", mainwin->ys[fill->item.iItem]);
+				_snwprintf(fill->item.pszText, fill->item.cchTextMax - 1, L"%d", mainwin->ys[fill->item.iItem]);
+				fill->item.pszText[fill->item.cchTextMax - 1] = L'\0';
 				return TRUE;
 			}
 			// else fallthrough
