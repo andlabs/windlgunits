@@ -117,7 +117,7 @@ static void getAverages(HDC dc, struct baseunits *out)
 
 	if (GetTextExtentPoint32(dc, GTEP32STR, 52, &extents) == 0)
 		abort();//TODO
-	out->xbase_gtep32 = extents.cx;
+	out->xbase_gtep32 = (extents.cx / 26 + 1) / 2;
 	if (GetTextMetrics(dc, &tm) == 0)
 		abort();//TODO
 	out->xbase_acw = tm.tmAveCharWidth;
