@@ -40,7 +40,13 @@ static void reportCurrentFont(struct mainwin *mainwin, LOGFONTW lf)
 		TEXTMETRICW tm;
 		HFONT prev;
 
-		// TODO
+		prev = SelectObject(dc, mainwin->font);
+		if (prev == NULL)
+			panic(mainwin->hwnd, "SelectObject() to select chosen font in reportCurrentFont() failed");
+		if (GetTextMetricsW(dc, &tm) == 0)
+			panic(mainwin->hwnd, "GetTextMetricsW() in reportCurrentFont() failed");
+		if (SelectObject(dc, prev) != mainwin->font)
+			panic(mainwin->hwnd, "SelectObject() to restore previous font in reportCurrentFont() failed");
 		// solve the first formula in http://support.microsoft.com/kb/74299 for point size
 		h = ((h - tm.tmInternalLeading) * 72) / GetDeviceCaps(dc, LOGPIXELSY);
 	} else
