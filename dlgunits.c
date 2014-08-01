@@ -9,11 +9,12 @@ WCHAR *modenames[nModes] = {
 	[mode_MapDialogRect] = L"MapDialogRect()",
 };
 
+#define nColumns 3
+
 static WCHAR *colnames[] = {
 	L"Mode",
 	L"Width",
 	L"Height",
-	NULL,
 };
 
 void initResultsListView(HWND hwnd)
@@ -21,7 +22,7 @@ void initResultsListView(HWND hwnd)
 	LVCOLUMNW col;
 	int i;
 
-	for (i = 0; colnames[i] != NULL; i++) {
+	for (i = 0; i < nColumns; i++) {
 		ZeroMemory(&col, sizeof (LVCOLUMNW));
 		col.mask = LVCF_FMT | LVCF_TEXT | LVCF_SUBITEM | LVCF_ORDER;
 		col.fmt = LVCFMT_LEFT;
@@ -36,7 +37,15 @@ void initResultsListView(HWND hwnd)
 
 void refreshResultsListView(HWND hwnd)
 {
-	if (SendMessageW(hwnd, LVM_SETITEMCOUNT, (WPARAM) nModes, 0) == 0)
+	int i;
+
+	for (i = 0; i < nModes; i++)
+		if (SendMessageW(hwnd, LVM_UPDATE, (WPARAM) i, 0) == FALSE)
+			abort();//TODO
+	for (i = 0; i < nColumns; i++)
+		if (SendMessageW(hwnd, LVM_SETCOLUMNWIDTH, (WPARAM) i, (LPARAM) LVSCW_AUTOSIZE) == FALSE)
+			abort();//TODO
+	if (UpdateWindow(hwnd) == 0)
 		abort();//TODO
 }
 
