@@ -5,7 +5,7 @@ else
 	CC = i686-w64-mingw32-gcc
 	RC = i686-w64-mingw32-windres
 endif
-CFILES = main.c dlgunits.c
+CFILES = main.c dlgunits.c util.c
 RCFILES = mainwin.rc
 HFILES = windlgunits.h winapi.h mainwin.h
 

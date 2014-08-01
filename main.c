@@ -4,6 +4,7 @@
 HFONT lfMessageFont;
 
 struct mainwin {
+	HWND hwnd;
 	HWND hXCoord;
 	HWND hYCoord;
 	HWND hResults;
@@ -14,8 +15,6 @@ struct mainwin {
 	HFONT font;
 	BOOL freeFont;
 };
-
-#define printf(...) abort()
 
 static HFONT chooseFont(HWND parent)
 {
@@ -36,11 +35,11 @@ static HFONT chooseFont(HWND parent)
 		err = CommDlgExtendedError();
 		if (err == 0)		// user cancelled
 			return NULL;
-		printf("panic TODO\n");
+		panic(parent, "error opening Choose Font dialog");
 	}
 	font = CreateFontIndirectW(&lf);
 	if (font == NULL)
-		printf("panic TODO\n");
+		panic(parent, "error loading selected font");
 	return font;
 }
 
@@ -49,7 +48,7 @@ static void freefont(struct mainwin *mainwin)
 	if (!mainwin->freeFont)		// only if we should
 		return;
 	if (DeleteObject(mainwin->font) == 0)
-		printf("panic TODO\n");
+		panic(mainwin->hwnd, "error freeing previous font");
 }
 
 static void recalc(HWND hwnd, struct mainwin *mainwin)
@@ -74,17 +73,18 @@ INT_PTR CALLBACK mainwinDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 	case WM_INITDIALOG:
 		mainwin = (struct mainwin *) malloc(sizeof (struct mainwin));
 		if (mainwin == NULL)
-			printf("TODO panic\n");
+			panic(hwnd, "error allocating internal mainwin structure");
 		ZeroMemory(mainwin, sizeof (struct mainwin));
+		mainwin->hwnd = hwnd;
 		mainwin->hXCoord = GetDlgItem(hwnd, ecXCoord);
 		if (mainwin->hXCoord == NULL)
-			printf("TODO panic\n");
+			panic(hwnd, "error getting width box handle");
 		mainwin->hYCoord = GetDlgItem(hwnd, ecYCoord);
 		if (mainwin->hYCoord == NULL)
-			printf("TODO panic\n");
+			panic(hwnd, "error getting height box handle");
 		mainwin->hResults = GetDlgItem(hwnd, lcResults);
 		if (mainwin->hResults == NULL)
-			printf("TODO panic\n");
+			panic(hwnd, "error getting results list handle");
 		// require a button to be clicked before editing
 		EnableWindow(mainwin->hXCoord, FALSE);
 		EnableWindow(mainwin->hYCoord, FALSE);
@@ -122,7 +122,7 @@ INT_PTR CALLBACK mainwinDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 				freefont(mainwin);
 				mainwin->font = (HFONT) SendMessageW(hwnd, WM_GETFONT, 0, 0);
 				if (mainwin->font == NULL)
-					printf("panic TODO\n");
+					panic(hwnd, "error grabbing dialog font");
 				mainwin->freeFont = FALSE;
 				recalc(hwnd, mainwin);
 				EnableWindow(mainwin->hXCoord, TRUE);
@@ -183,12 +183,12 @@ INT_PTR CALLBACK mainwinDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 		return FALSE;
 	case WM_CLOSE:
 		if (EndDialog(hwnd, 1) == 0)
-			printf("TODO panic\n");
+			panic(NULL, "error closing main window");
 		return TRUE;
 	default:
 		return FALSE;
 	}
-	// TODO panic
+	panic(hwnd, "programmer error: message code in mainwinDlgProc without return value");
 	return FALSE;
 }
 
@@ -201,18 +201,18 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	icc.dwSize = sizeof (INITCOMMONCONTROLSEX);
 	icc.dwICC = ICC_LISTVIEW_CLASSES;
 	if (InitCommonControlsEx(&icc) == FALSE)
-		printf("error TODO\n");
+		panic(NULL, "Error initializing Common Controls (comctl32.dll)");
 
 	ZeroMemory(&ncm, sizeof (NONCLIENTMETRICSW));
 	ncm.cbSize = sizeof (NONCLIENTMETRICSW);
 	if (SystemParametersInfoW(SPI_GETNONCLIENTMETRICS, sizeof (NONCLIENTMETRICSW), &ncm, sizeof (NONCLIENTMETRICSW)) == 0)
-		printf("panic TODO\n");
+		panic(NULL, "Failed to get lfMessageFont");
 	lfMessageFont = CreateFontIndirectW(&ncm.lfMessageFont);
 	if (lfMessageFont == NULL)
-		printf("panic TODO\n");
+		panic(NULL, "Failed to load lfMessageFont");
 
 	if (DialogBox(NULL, MAKEINTRESOURCE(rcMainWin), NULL, mainwinDlgProc) != 1)
-		printf("error TODO\n");
+		panic(NULL, "DialogBox() to open the main window failed");
 
 	return 0;
 }
