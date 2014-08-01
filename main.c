@@ -85,9 +85,9 @@ INT_PTR CALLBACK mainwinDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 		mainwin->hResults = GetDlgItem(hwnd, lcResults);
 		if (mainwin->hResults == NULL)
 			printf("TODO panic\n");
-		// let's avoid a crash at startup by using lfMessageFont by default
-		mainwin->font = lfMessageFont;
-		mainwin->freeFont = FALSE;
+		// require a button to be clicked before editing
+		EnableWindow(mainwin->hXCoord, FALSE);
+		EnableWindow(mainwin->hYCoord, FALSE);
 		SetWindowLongPtr(hwnd, DWLP_USER, (LONG_PTR) mainwin);
 		initResultsListView(mainwin->hResults);
 		return TRUE;
@@ -103,12 +103,16 @@ INT_PTR CALLBACK mainwinDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 				mainwin->font = font;
 				mainwin->freeFont = TRUE;
 				recalc(hwnd, mainwin);
+				EnableWindow(mainwin->hXCoord, TRUE);
+				EnableWindow(mainwin->hYCoord, TRUE);
 				return TRUE;
 			case bclfMessageFont:
 				freefont(mainwin);
 				mainwin->font = lfMessageFont;
 				mainwin->freeFont = FALSE;
 				recalc(hwnd, mainwin);
+				EnableWindow(mainwin->hXCoord, TRUE);
+				EnableWindow(mainwin->hYCoord, TRUE);
 				return TRUE;
 			case bcDialogFont:
 				freefont(mainwin);
@@ -117,6 +121,8 @@ INT_PTR CALLBACK mainwinDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 					printf("panic TODO\n");
 				mainwin->freeFont = FALSE;
 				recalc(hwnd, mainwin);
+				EnableWindow(mainwin->hXCoord, TRUE);
+				EnableWindow(mainwin->hYCoord, TRUE);
 				return TRUE;
 			}
 			return FALSE;
