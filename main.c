@@ -1,6 +1,8 @@
 // 31 july 2014
 #include "windlgunits.h"
 
+// #qo LDFLAGS: -luser32 -lkernel32 -lcomctl32 -lcomdlg32 -lgdi32
+
 // TODO this needs some /major/ cleanup
 
 LOGFONTW logfontMessageFont;
